@@ -46,7 +46,7 @@ class Player():
         self.w = w
         self.h = h
         self.image = pygame.Surface((self.w, self.h))
-        self.image.fill((175, 100, 175))
+        self.image.fill((116, 1, 113))
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.movement = [0, 0]
         self.speed = 5
