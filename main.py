@@ -33,20 +33,10 @@ def game_loop():
                 if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                     player.moving_right = False
                     player.moving_left = True
-                    player.facing_right = False
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     player.moving_left = False
                     player.moving_right = True
-                    player.facing_right = True
                 if (event.key == pygame.K_UP or event.key == pygame.K_w or event.key == pygame.K_SPACE):
-                    if player.on_wall and player.jumping:
-                        player.on_wall = False
-                        player.y_momentum -= 20
-                        player.jumping_timer = 0
-                        if player.facing_right:
-                            pass
-                        else:
-                            pass
                     if player.air_timer < 6 and not player.jumping:
                         player.y_momentum -= 20
                         player.jumping = True
