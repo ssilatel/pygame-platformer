@@ -10,7 +10,6 @@ SCREEN_HEIGHT = 720
 TILE_SIZE = 64
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 scroll = [0, 0]
-
 game_map = e.load_map("test_map.txt")
 dirt_img = pygame.Surface((TILE_SIZE, TILE_SIZE))
 dirt_img.fill((100, 100, 100))
@@ -18,13 +17,15 @@ player = e.Player(100, 864, TILE_SIZE // 2, TILE_SIZE // 2)
 
 class Watcher:
     def __init__(self, x, y):
-        self.center = (x, y)
-        self.image = pygame.draw.circle(screen, (200, 200, 200), (x * TILE_SIZE - scroll[0], y * TILE_SIZE - scroll[1]), 20, 0, False, False, True, True)
+        self.center_tile  = [x, y]
+        self.image = pygame.draw.circle(screen, (200, 200, 200), (self.center_tile[0] * TILE_SIZE - scroll[0], self.center_tile[1] * TILE_SIZE - scroll[1]), 20, 0, False, False, True, True)
 
     def watch(self, tile_list):
         for tile in tile_list:
-            if (self.center[0] - tile.center[0] < 5) and (self.center[1] - tile.center[1] < 5):
-                pygame.draw.line(screen, (255, 0, 0), (self.center[0] * TILE_SIZE - scroll[0], self.center[1] * TILE_SIZE - scroll[1]), (tile.center[0] - scroll[0], tile.center[1] - scroll[1]), 2)
+            if ((tile.center[0] / TILE_SIZE < self.center_tile[0] + 1) or (tile.center[0] / TILE_SIZE > self.center_tile[0] - 1)) and (tile.center[1] / TILE_SIZE > self.center_tile[1] + 2):
+                dist = math.hypot(self.center_tile[0] - tile.center[0] / TILE_SIZE, self.center_tile[1] - tile.center[1] / TILE_SIZE)
+                if dist < 7:
+                    pygame.draw.line(screen, (255, 0, 0), (self.center_tile[0] * TILE_SIZE - scroll[0], self.center_tile[1] * TILE_SIZE - scroll[1]), (tile.center[0] - scroll[0], tile.center[1] - scroll[1]), 2)
 
 def restart():
     player.rect.x = 100
@@ -84,7 +85,7 @@ def game_loop():
                 if tile == "2":
                     new_watcher = Watcher(x, y)
                     watchers.append(new_watcher)
-                if tile != "0":
+                if tile != "0" and tile != "2":
                     tile_rects.append(pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
                 x += 1
             y += 1
@@ -95,8 +96,6 @@ def game_loop():
         for w in watchers:
             w.watch(tile_rects)
 
-        print(tile_rects[0], watchers[0].center[0], watchers[0].center[1])
-        
         pygame.display.update()
         clock.tick(60)
 
