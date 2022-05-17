@@ -17,16 +17,17 @@ player = e.Player(100, 864, TILE_SIZE // 2, TILE_SIZE // 2)
 
 class Watcher:
     def __init__(self, x, y):
-        self.center_tile  = [x, y]
-        self.image = pygame.draw.circle(screen, (200, 200, 200), (self.center_tile[0] * TILE_SIZE - scroll[0], self.center_tile[1] * TILE_SIZE - scroll[1]), 20, 0, False, False, True, True)
+        self.x = x
+        self.y = y
+        self.image = pygame.draw.circle(screen, (200, 200, 200), (self.x, self.y), 20, 0, False, False, True, True)
+        self.rect = pygame.Rect(self.x - 10, self.y - 10, 30, 30)
 
     def watch(self, tile_list):
-        for tile in tile_list:
-            if ((tile.center[0] / TILE_SIZE < self.center_tile[0] + 1) or (tile.center[0] / TILE_SIZE > self.center_tile[0] - 1)) and (tile.center[1] / TILE_SIZE > self.center_tile[1] + 2):
-                dist = math.hypot(self.center_tile[0] - tile.center[0] / TILE_SIZE, self.center_tile[1] - tile.center[1] / TILE_SIZE)
-                if dist < 7:
-                    pygame.draw.line(screen, (255, 0, 0), (self.center_tile[0] * TILE_SIZE - scroll[0], self.center_tile[1] * TILE_SIZE - scroll[1]), (tile.center[0] - scroll[0], tile.center[1] - scroll[1]), 2)
-
+        points = []
+        for i in range(-5, 6):
+            line = pygame.draw.line(screen, (150, 150, 0), (self.x, self.y), (self.x + i * TILE_SIZE, self.y + 5 * TILE_SIZE))
+            for tile in tile_list:
+                pass
 def restart():
     player.rect.x = 100
     player.rect.y = 864
@@ -36,6 +37,33 @@ def game_loop():
     mode = "prod"
     running = True
     while running:
+        screen.fill((0, 0, 0))
+
+        scroll[0] += (player.rect.x - scroll[0] - ((SCREEN_WIDTH // 2) - (TILE_SIZE // 4))) // 10
+        scroll[1] += (player.rect.y - scroll[1] - ((SCREEN_HEIGHT // 2) - (TILE_SIZE // 4))) // 10
+
+        tile_rects = []
+        watchers = []
+        y = 0
+        for row in game_map:
+            x = 0
+            for tile in row:
+                if tile == "1":
+                    screen.blit(dirt_img, (x * TILE_SIZE - scroll[0], y * TILE_SIZE - scroll[1]))
+                if tile == "2":
+                    new_watcher = Watcher(x * TILE_SIZE - scroll[0], y * TILE_SIZE - scroll[1])
+                    watchers.append(new_watcher)
+                if tile != "0" and tile != "2":
+                    tile_rects.append(pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+                x += 1
+            y += 1
+        
+        for w in watchers:
+            w.watch(tile_rects)
+
+        player.update(tile_rects, mode, screen, scroll)
+        player.draw(screen, scroll)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -68,33 +96,6 @@ def game_loop():
                     player.moving_left = False
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     player.moving_right = False
-
-        screen.fill((0, 0, 0))
-
-        scroll[0] += (player.rect.x - scroll[0] - ((SCREEN_WIDTH // 2) - (TILE_SIZE // 4))) // 10
-        scroll[1] += (player.rect.y - scroll[1] - ((SCREEN_HEIGHT // 2) - (TILE_SIZE // 4))) // 10
-
-        tile_rects = []
-        watchers = []
-        y = 0
-        for row in game_map:
-            x = 0
-            for tile in row:
-                if tile == "1":
-                    screen.blit(dirt_img, (x * TILE_SIZE - scroll[0], y * TILE_SIZE - scroll[1]))
-                if tile == "2":
-                    new_watcher = Watcher(x, y)
-                    watchers.append(new_watcher)
-                if tile != "0" and tile != "2":
-                    tile_rects.append(pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
-                x += 1
-            y += 1
-        
-        player.update(tile_rects, mode, screen, scroll)
-        player.draw(screen, scroll)
-
-        for w in watchers:
-            w.watch(tile_rects)
 
         pygame.display.update()
         clock.tick(60)
