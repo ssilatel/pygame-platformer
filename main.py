@@ -21,9 +21,9 @@ class Watcher:
     def __init__(self, pos):
         self.pos = pos
         self.angle = math.pi * 2
-        self.fov = math.pi / 2.1
+        self.fov = math.pi / 2
         self.half_fov = self.fov / 2
-        self.casted_rays = 40
+        self.casted_rays = 42
         self.max_depth = int(MAP_SIZE * TILE_SIZE)
         self.step_angle = self.fov / self.casted_rays
     
@@ -36,7 +36,7 @@ class Watcher:
         # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle + self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle + self.half_fov) * 500) - scroll[1]))
 
         targets = []
-        starting_angle = self.angle - self.half_fov
+        starting_angle = (self.angle - self.half_fov) + (self.step_angle / 2)
         for ray in range(self.casted_rays):
             for depth in range(self.max_depth):
                 target_x = self.pos[0] - math.sin(starting_angle) * depth
@@ -50,7 +50,7 @@ class Watcher:
                     targets.append([target_x - scroll[0], target_y - scroll[1]])
                     break
             starting_angle += self.step_angle
-        pygame.draw.polygon(screen, (255, 255, 255), [[self.pos[0] - scroll[0], self.pos[1] - scroll[1]], *targets])
+        pygame.draw.polygon(screen, (255, 255, 167), [[self.pos[0] - scroll[0], self.pos[1] - scroll[1]], *targets])
 
 w1 = Watcher([12 * TILE_SIZE, 9 * TILE_SIZE])
 w2 = Watcher([53 * TILE_SIZE, 7 * TILE_SIZE])
