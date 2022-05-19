@@ -1,3 +1,4 @@
+from tracemalloc import start
 import pygame
 import sys
 import engine as e
@@ -11,23 +12,50 @@ TILE_SIZE = 64
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 scroll = [0, 0]
 game_map = e.load_map("test_map.txt")
+MAP_SIZE = int(len(game_map))
 dirt_img = pygame.Surface((TILE_SIZE, TILE_SIZE))
 dirt_img.fill((100, 100, 100))
 player = e.Player(100, 864, TILE_SIZE // 2, TILE_SIZE // 2)
 
 class Watcher:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.image = pygame.draw.circle(screen, (200, 200, 200), (self.x, self.y), 20, 0, False, False, True, True)
-        self.rect = pygame.Rect(self.x - 10, self.y - 10, 30, 30)
+    def __init__(self, pos):
+        self.pos = pos
+        self.angle = math.pi * 2
+        self.fov = math.pi / 2.1
+        self.half_fov = self.fov / 2
+        self.casted_rays = 40
+        self.max_depth = int(MAP_SIZE * TILE_SIZE)
+        self.step_angle = self.fov / self.casted_rays
+    
+    def draw(self):
+        pygame.draw.circle(screen, (255, 255, 255), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), 20, 0, False, False, True, True)
+    
+    def watch(self):
+        # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle) * 500) - scroll[1]))
+        # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle - self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle - self.half_fov) * 500) - scroll[1]))
+        # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle + self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle + self.half_fov) * 500) - scroll[1]))
 
-    def watch(self, tile_list):
-        points = []
-        for i in range(-5, 6):
-            line = pygame.draw.line(screen, (150, 150, 0), (self.x, self.y), (self.x + i * TILE_SIZE, self.y + 5 * TILE_SIZE))
-            for tile in tile_list:
-                pass
+        targets = []
+        starting_angle = self.angle - self.half_fov
+        for ray in range(self.casted_rays):
+            for depth in range(self.max_depth):
+                target_x = self.pos[0] - math.sin(starting_angle) * depth
+                target_y = self.pos[1] + math.cos(starting_angle) * depth
+
+                col = int(target_x / TILE_SIZE)
+                row = int(target_y / TILE_SIZE)
+
+                if game_map[row][col] == "1":
+                    # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), (target_x - scroll[0], target_y - scroll[1]))
+                    targets.append([target_x - scroll[0], target_y - scroll[1]])
+                    break
+            starting_angle += self.step_angle
+        pygame.draw.polygon(screen, (255, 255, 255), [[self.pos[0] - scroll[0], self.pos[1] - scroll[1]], *targets])
+
+w1 = Watcher([12 * TILE_SIZE, 9 * TILE_SIZE])
+w2 = Watcher([53 * TILE_SIZE, 7 * TILE_SIZE])
+watchers = [w1, w2]
+
 def restart():
     player.rect.x = 100
     player.rect.y = 864
@@ -43,24 +71,21 @@ def game_loop():
         scroll[1] += (player.rect.y - scroll[1] - ((SCREEN_HEIGHT // 2) - (TILE_SIZE // 4))) // 10
 
         tile_rects = []
-        watchers = []
         y = 0
         for row in game_map:
             x = 0
             for tile in row:
                 if tile == "1":
                     screen.blit(dirt_img, (x * TILE_SIZE - scroll[0], y * TILE_SIZE - scroll[1]))
-                if tile == "2":
-                    new_watcher = Watcher(x * TILE_SIZE - scroll[0], y * TILE_SIZE - scroll[1])
-                    watchers.append(new_watcher)
-                if tile != "0" and tile != "2":
+                if tile != "0":
                     tile_rects.append(pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
                 x += 1
             y += 1
-        
-        for w in watchers:
-            w.watch(tile_rects)
 
+        for w in watchers:
+            w.draw()
+            w.watch()
+        
         player.update(tile_rects, mode, screen, scroll)
         player.draw(screen, scroll)
 

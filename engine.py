@@ -17,20 +17,6 @@ def collision_test(rect, tiles):
             hit_list.append(tile)
     return hit_list
 
-# def nearby_tiles(x,y,tiles):
-#     x_loc = int(round(x/32,0))
-#     y_loc = int(round(y/32,0))
-#     tile_list = []
-#     for y in range(3):
-#         for x in range(3):
-#             loc = str(x_loc+x-1) + ';' + str(y_loc+y-1)
-#             if loc in tiles:
-#                 for tile in tiles[loc][0]:
-#                     if tile[:-4] in collision_types:
-#                         tile_list.append([tiles[loc][1]*32,tiles[loc][2]*32,32,32])
-#                         break
-#     return tile_list
-
 def move(rect, movement, tiles, mode, screen, scroll):
     collision_types = {"top": False, "bottom": False, "left": False, "right": False}
     rect.x += movement[0]
