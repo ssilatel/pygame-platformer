@@ -55,9 +55,14 @@ class Player():
         self.h = h
         self.image = pygame.Surface((self.w, self.h))
         self.image.fill((116, 1, 113))
-        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+        # self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
         self.movement = [0, 0]
-        self.speed = 5
+        self.speed = 3
+        self.jump_height = 13
+        self.max_gravity = 5
         self.moving_left = False
         self.moving_right = False
         self.jumping = False
@@ -72,9 +77,9 @@ class Player():
         elif self.moving_right:
             self.movement[0] += self.speed
         self.movement[1] += self.y_momentum
-        self.y_momentum += 1.5
-        if self.y_momentum > 8:
-            self.y_momentum = 8
+        self.y_momentum += 1
+        if self.y_momentum > self.max_gravity:
+            self.y_momentum = self.max_gravity
         
         collisions = move(self.rect, self.movement, tiles, mode, screen, scroll)
         if collisions["bottom"]:

@@ -1,4 +1,3 @@
-from tracemalloc import start
 import pygame
 import sys
 import engine as e
@@ -6,16 +5,17 @@ import math
 
 clock = pygame.time.Clock()
 pygame.font.init()
-SCREEN_WIDTH = 1280
-SCREEN_HEIGHT = 720
-TILE_SIZE = 64
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
+SCREEN_WIDTH = 640
+SCREEN_HEIGHT = 360
+TILE_SIZE = 32
+display_surf = pygame.display.set_mode((SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2), 0, 32)
+screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 scroll = [0, 0]
 game_map = e.load_map("test_map.txt")
 MAP_SIZE = int(len(game_map))
 dirt_img = pygame.Surface((TILE_SIZE, TILE_SIZE))
 dirt_img.fill((100, 100, 100))
-player = e.Player(100, 864, TILE_SIZE // 2, TILE_SIZE // 2)
+player = e.Player(2 * TILE_SIZE, 11 * TILE_SIZE, TILE_SIZE // 2, TILE_SIZE // 2)
 
 class Watcher:
     def __init__(self, pos):
@@ -28,7 +28,7 @@ class Watcher:
         self.step_angle = self.fov / self.casted_rays
     
     def draw(self):
-        pygame.draw.circle(screen, (255, 255, 255), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), 20, 0, False, False, True, True)
+        pygame.draw.circle(screen, (255, 255, 255), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), 10, 0, False, False, True, True)
     
     def watch(self):
         # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle) * 500) - scroll[1]))
@@ -47,18 +47,20 @@ class Watcher:
 
                 if game_map[row][col] == "1":
                     # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), (target_x - scroll[0], target_y - scroll[1]))
-                    targets.append([target_x - scroll[0], target_y - scroll[1]])
+                    targets.append([target_x - 1 - scroll[0], target_y - 1 - scroll[1]])    # Collision happens 1px inside the tile so -1 from targets draws it where it should be
                     break
             starting_angle += self.step_angle
         pygame.draw.polygon(screen, (255, 255, 167), [[self.pos[0] - scroll[0], self.pos[1] - scroll[1]], *targets])
 
 w1 = Watcher([12 * TILE_SIZE, 9 * TILE_SIZE])
 w2 = Watcher([53 * TILE_SIZE, 7 * TILE_SIZE])
-watchers = [w1, w2]
+w3 = Watcher([23 * TILE_SIZE, 2 * TILE_SIZE])
+w4 = Watcher([7 * TILE_SIZE, 3 * TILE_SIZE])
+watchers = [w1, w2, w3, w4]
 
 def restart():
-    player.rect.x = 100
-    player.rect.y = 864
+    player.rect.x = 2 * TILE_SIZE
+    player.rect.y = 11 * TILE_SIZE
     player.movement = [0, 0]
 
 def game_loop():
@@ -107,7 +109,7 @@ def game_loop():
                     player.moving_right = True
                 if (event.key == pygame.K_UP or event.key == pygame.K_w or event.key == pygame.K_SPACE):
                     if player.air_timer < 6 and not player.jumping:
-                        player.y_momentum -= 21
+                        player.y_momentum -= player.jump_height
                         player.jumping = True
                 if event.key == pygame.K_r:
                     restart()
@@ -121,6 +123,9 @@ def game_loop():
                     player.moving_left = False
                 if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     player.moving_right = False
+        
+        surf = pygame.transform.scale(screen, (screen.get_width() * 2, screen.get_height() * 2))
+        display_surf.blit(surf, (0, 0, surf.get_width(), surf.get_height()))
 
         pygame.display.update()
         clock.tick(60)
@@ -134,7 +139,7 @@ def draw_menu_font(x, y, size, text, color, selected):
         pygame.draw.rect(screen, (255, 255, 255), ((x - size[0] // 2) - 50 // 2, y - 5, 8, 8))
 
 def main_menu():
-    options = [["PLAY", 50], ["OPTIONS", 40], ["QUIT", 40]]
+    options = [["PLAY", 40], ["OPTIONS", 30], ["QUIT", 30]]
     selected_choice = 0
     choices = []
     for o in options:
@@ -168,12 +173,15 @@ def main_menu():
 
         for i, option in enumerate(options):
             draw_menu_font(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + (50 * i), option[1], option[0], (255, 255, 255), choices[i][1])
+        
+        surf = pygame.transform.scale(screen, (screen.get_width() * 2, screen.get_height() * 2))
+        display_surf.blit(surf, (0, 0, surf.get_width(), surf.get_height()))
 
         pygame.display.update()
         clock.tick(60)
 
 def pause_menu():
-    options = [["RESUME", 50], ["OPTIONS", 40], ["QUIT", 40]]
+    options = [["RESUME", 40], ["OPTIONS", 30], ["QUIT", 30]]
     selected_choice = 0
     choices = []
     for o in options:
@@ -209,6 +217,9 @@ def pause_menu():
 
         for i, option in enumerate(options):
             draw_menu_font(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + (50 * i), option[1], option[0], (255, 255, 255), choices[i][1])
+        
+        surf = pygame.transform.scale(screen, (screen.get_width() * 2, screen.get_height() * 2))
+        display_surf.blit(surf, (0, 0, surf.get_width(), surf.get_height()))
 
         pygame.display.update()
         clock.tick(60)
