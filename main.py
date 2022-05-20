@@ -32,9 +32,9 @@ class Watcher:
     
     def watch(self, mode):
         if mode == "debug":
-            pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle) * 500) - scroll[1]))
-            pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle - self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle - self.half_fov) * 500) - scroll[1]))
-            pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle + self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle + self.half_fov) * 500) - scroll[1]))
+            pygame.draw.line(screen, (255, 0, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle) * 500) - scroll[1]))
+            pygame.draw.line(screen, (255, 0, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle - self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle - self.half_fov) * 500) - scroll[1]))
+            pygame.draw.line(screen, (255, 0, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle + self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle + self.half_fov) * 500) - scroll[1]))
 
         targets = []
         starting_angle = (self.angle - self.half_fov) + (self.step_angle / 2)
@@ -48,7 +48,7 @@ class Watcher:
 
                 if game_map[row][col] == "1":
                     if mode == "debug":
-                        pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), (target_x - scroll[0], target_y - scroll[1]))
+                        pygame.draw.line(screen, (255, 0, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), (target_x - scroll[0], target_y - scroll[1]))
                     targets.append([target_x - scroll[0], target_y - scroll[1]])
                     break
             starting_angle += self.step_angle
