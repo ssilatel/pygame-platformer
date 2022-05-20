@@ -41,13 +41,14 @@ class Watcher:
             for depth in range(self.max_depth):
                 target_x = self.pos[0] - math.sin(starting_angle) * depth
                 target_y = self.pos[1] + math.cos(starting_angle) * depth
+                # print(target_x, target_y, self.pos[0], self.pos[1])
 
                 col = int(target_x / TILE_SIZE)
                 row = int(target_y / TILE_SIZE)
 
                 if game_map[row][col] == "1":
                     # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), (target_x - scroll[0], target_y - scroll[1]))
-                    targets.append([target_x - 1 - scroll[0], target_y - 1 - scroll[1]])    # Collision happens 1px inside the tile so -1 from targets draws it where it should be
+                    targets.append([target_x - scroll[0], target_y - scroll[1]])
                     break
             starting_angle += self.step_angle
         pygame.draw.polygon(screen, (255, 255, 167), [[self.pos[0] - scroll[0], self.pos[1] - scroll[1]], *targets])
@@ -72,6 +73,10 @@ def game_loop():
         scroll[0] += (player.rect.x - scroll[0] - ((SCREEN_WIDTH // 2) - (TILE_SIZE // 4))) // 10
         scroll[1] += (player.rect.y - scroll[1] - ((SCREEN_HEIGHT // 2) - (TILE_SIZE // 4))) // 10
 
+        for w in watchers:
+            w.draw()
+            w.watch()
+
         tile_rects = []
         y = 0
         for row in game_map:
@@ -83,10 +88,6 @@ def game_loop():
                     tile_rects.append(pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
                 x += 1
             y += 1
-
-        for w in watchers:
-            w.draw()
-            w.watch()
         
         player.update(tile_rects, mode, screen, scroll)
         player.draw(screen, scroll)
