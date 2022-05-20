@@ -15,11 +15,12 @@ game_map = e.load_map("test_map.txt")
 MAP_SIZE = int(len(game_map))
 dirt_img = pygame.Surface((TILE_SIZE, TILE_SIZE))
 dirt_img.fill((100, 100, 100))
-player = e.Player(2 * TILE_SIZE, 11 * TILE_SIZE, TILE_SIZE // 2, TILE_SIZE // 2)
+player = e.Player(2.5 * TILE_SIZE, 11 * TILE_SIZE, TILE_SIZE // 2, TILE_SIZE // 2)
 
 class Watcher:
-    def __init__(self, pos):
-        self.pos = pos
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
         self.angle = math.pi * 2
         self.fov = math.pi / 2
         self.half_fov = self.fov / 2
@@ -28,42 +29,67 @@ class Watcher:
         self.step_angle = self.fov / self.casted_rays
     
     def draw(self):
-        pygame.draw.circle(screen, (255, 255, 255), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), 10, 0, False, False, True, True)
+        pygame.draw.circle(screen, (255, 255, 255), (self.x - scroll[0], self.y - scroll[1]), 10, 0, False, False, True, True)
     
     def watch(self, mode):
         if mode == "debug":
-            pygame.draw.line(screen, (255, 0, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle) * 500) - scroll[1]))
-            pygame.draw.line(screen, (255, 0, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle - self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle - self.half_fov) * 500) - scroll[1]))
-            pygame.draw.line(screen, (255, 0, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle + self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle + self.half_fov) * 500) - scroll[1]))
+            pygame.draw.line(screen, (255, 0, 0), (self.x - scroll[0], self.y - scroll[1]), ((self.x - math.sin(self.angle) * 500) - scroll[0], (self.y + math.cos(self.angle) * 500) - scroll[1]))
+            pygame.draw.line(screen, (255, 0, 0), (self.x - scroll[0], self.y - scroll[1]), ((self.x - math.sin(self.angle - self.half_fov) * 500) - scroll[0], (self.y + math.cos(self.angle - self.half_fov) * 500) - scroll[1]))
+            pygame.draw.line(screen, (255, 0, 0), (self.x - scroll[0], self.y - scroll[1]), ((self.x - math.sin(self.angle + self.half_fov) * 500) - scroll[0], (self.y + math.cos(self.angle + self.half_fov) * 500) - scroll[1]))
 
         targets = []
         starting_angle = (self.angle - self.half_fov) + (self.step_angle / 2)
         for ray in range(self.casted_rays):
             for depth in range(self.max_depth):
-                target_x = self.pos[0] - math.sin(starting_angle) * depth
-                target_y = self.pos[1] + math.cos(starting_angle) * depth
+                target_x = self.x - math.sin(starting_angle) * depth
+                target_y = self.y + math.cos(starting_angle) * depth
 
                 col = int(target_x / TILE_SIZE)
                 row = int(target_y / TILE_SIZE)
 
                 if game_map[row][col] == "1":
                     if mode == "debug":
-                        pygame.draw.line(screen, (255, 0, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), (target_x - scroll[0], target_y - scroll[1]))
+                        pygame.draw.line(screen, (255, 0, 0), (self.x - scroll[0], self.y - scroll[1]), (target_x - scroll[0], target_y - scroll[1]))
                     targets.append([target_x - scroll[0], target_y - scroll[1]])
                     break
             starting_angle += self.step_angle
-        pygame.draw.polygon(screen, (255, 255, 167), [[self.pos[0] - scroll[0], self.pos[1] - scroll[1]], *targets])
+        pygame.draw.polygon(screen, (255, 255, 167), [[self.x - scroll[0], self.y - scroll[1]], *targets])
 
-w1 = Watcher([12 * TILE_SIZE, 9 * TILE_SIZE])
-w2 = Watcher([53 * TILE_SIZE, 7 * TILE_SIZE])
-w3 = Watcher([23 * TILE_SIZE, 2 * TILE_SIZE])
-w4 = Watcher([7 * TILE_SIZE, 3 * TILE_SIZE])
+w1 = Watcher(12 * TILE_SIZE, 9 * TILE_SIZE)
+w2 = Watcher(53 * TILE_SIZE, 7 * TILE_SIZE)
+w3 = Watcher(23 * TILE_SIZE, 2 * TILE_SIZE)
+w4 = Watcher(7 * TILE_SIZE, 3 * TILE_SIZE)
 watchers = [w1, w2, w3, w4]
 
-def restart():
-    player.rect.x = 2 * TILE_SIZE
-    player.rect.y = 11 * TILE_SIZE
-    player.movement = [0, 0]
+class Spike():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.w = TILE_SIZE
+        self.h = TILE_SIZE // 2
+        self.image = pygame.Surface((self.w, self.h))
+        self.image.fill((171, 63, 0))
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+    
+    def draw(self):
+        screen.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))
+    
+    def update(self, p):
+        if self.rect.colliderect(p.rect):
+            p.restart()
+
+s1 = Spike(26 * TILE_SIZE, 13.5 * TILE_SIZE)
+s2 = Spike(27 * TILE_SIZE, 13.5 * TILE_SIZE)
+s3 = Spike(35 * TILE_SIZE, 13.5 * TILE_SIZE)
+s4 = Spike(36 * TILE_SIZE, 13.5 * TILE_SIZE)
+s5 = Spike(38 * TILE_SIZE, 13.5 * TILE_SIZE)
+s6 = Spike(39 * TILE_SIZE, 13.5 * TILE_SIZE)
+s7 = Spike(41 * TILE_SIZE, 13.5 * TILE_SIZE)
+s8 = Spike(42 * TILE_SIZE, 13.5 * TILE_SIZE)
+s9 = Spike(44 * TILE_SIZE, 13.5 * TILE_SIZE)
+s10 = Spike(45 * TILE_SIZE, 13.5 * TILE_SIZE)
+s11 = Spike(12 * TILE_SIZE, 7.5 * TILE_SIZE)
+spikes = [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11]
 
 def game_loop():
     mode = "prod"
@@ -75,8 +101,8 @@ def game_loop():
         scroll[1] += (player.rect.y - scroll[1] - ((SCREEN_HEIGHT // 2) - (TILE_SIZE // 4))) // 10
 
         for w in watchers:
-            w.draw()
             w.watch(mode)
+            w.draw()
 
         tile_rects = []
         y = 0
@@ -90,6 +116,10 @@ def game_loop():
                 x += 1
             y += 1
         
+        for s in spikes:
+            s.update(player)
+            s.draw()
+
         player.update(tile_rects, mode, screen, scroll)
         player.draw(screen, scroll)
 
@@ -114,7 +144,7 @@ def game_loop():
                         player.y_momentum -= player.jump_height
                         player.jumping = True
                 if event.key == pygame.K_r:
-                    restart()
+                    player.restart()
                 if event.key == pygame.K_TAB:
                     if mode == "prod":
                         mode = "debug"

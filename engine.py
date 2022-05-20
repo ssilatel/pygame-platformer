@@ -55,10 +55,7 @@ class Player():
         self.h = h
         self.image = pygame.Surface((self.w, self.h))
         self.image.fill((116, 1, 113))
-        # self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-        self.rect = self.image.get_rect()
-        self.rect.x = self.x
-        self.rect.y = self.y
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.movement = [0, 0]
         self.speed = 3
         self.jump_height = 13
@@ -69,6 +66,10 @@ class Player():
         self.y_momentum = 0
         self.air_timer = 0
     
+    def restart(self):
+        self.rect.x = 2.5 * 32
+        self.rect.y = 11 * 32
+        self.movement = [0, 0]    
     
     def update(self, tiles, mode, screen, scroll):
         self.movement = [0, 0]
