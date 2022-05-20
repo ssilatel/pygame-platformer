@@ -30,10 +30,11 @@ class Watcher:
     def draw(self):
         pygame.draw.circle(screen, (255, 255, 255), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), 10, 0, False, False, True, True)
     
-    def watch(self):
-        # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle) * 500) - scroll[1]))
-        # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle - self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle - self.half_fov) * 500) - scroll[1]))
-        # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle + self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle + self.half_fov) * 500) - scroll[1]))
+    def watch(self, mode):
+        if mode == "debug":
+            pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle) * 500) - scroll[1]))
+            pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle - self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle - self.half_fov) * 500) - scroll[1]))
+            pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), ((self.pos[0] - math.sin(self.angle + self.half_fov) * 500) - scroll[0], (self.pos[1] + math.cos(self.angle + self.half_fov) * 500) - scroll[1]))
 
         targets = []
         starting_angle = (self.angle - self.half_fov) + (self.step_angle / 2)
@@ -41,13 +42,13 @@ class Watcher:
             for depth in range(self.max_depth):
                 target_x = self.pos[0] - math.sin(starting_angle) * depth
                 target_y = self.pos[1] + math.cos(starting_angle) * depth
-                # print(target_x, target_y, self.pos[0], self.pos[1])
 
                 col = int(target_x / TILE_SIZE)
                 row = int(target_y / TILE_SIZE)
 
                 if game_map[row][col] == "1":
-                    # pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), (target_x - scroll[0], target_y - scroll[1]))
+                    if mode == "debug":
+                        pygame.draw.line(screen, (200, 200, 0), (self.pos[0] - scroll[0], self.pos[1] - scroll[1]), (target_x - scroll[0], target_y - scroll[1]))
                     targets.append([target_x - scroll[0], target_y - scroll[1]])
                     break
             starting_angle += self.step_angle
@@ -75,7 +76,7 @@ def game_loop():
 
         for w in watchers:
             w.draw()
-            w.watch()
+            w.watch(mode)
 
         tile_rects = []
         y = 0
